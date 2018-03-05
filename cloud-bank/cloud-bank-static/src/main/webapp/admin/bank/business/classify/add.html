@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="renderer" content="webkit">
+<title></title>
+<link rel="stylesheet" href="../../../css/pintuer.css">
+<link rel="stylesheet" href="../../../css/admin.css">
+<script src="../../../js/jquery.js"></script>
+<script src="../../../js/pintuer.js"></script>
+<script src="../../../js/constant.js"></script>  
+<script src="../../../js/jquery.cookie.js"></script>
+<script src="../../../js/layer/layer.js"></script>
+</head>
+<body>
+<div class="panel admin-panel">
+  <div class="panel-head" id="add"><strong><span class="icon-pencil-square-o"></span>添加分类</strong></div>
+  <div class="body-content">
+    <form method="post" class="form-x" action="">  
+      <div class="form-group">
+        <div class="label">
+          <label>名称：</label>
+        </div>
+        <div class="field">
+          <input type="text" class="input w50" value="" name="name" id="name" data-validate="required:请输入名称" />
+          <div class="tips"></div>
+        </div>
+      </div> 
+      <div class="form-group">
+          <div class="label">
+            <label>步骤：</label>
+          </div>
+          <div class="field">
+            <select name="step" id="step" class="input w50">
+              <option value="0" selected="selected">初审资料</option>
+              <option value="1">面签资料</option>
+              <option value="2">合作商资料</option>
+              <option value="3">补录资料</option>
+            </select>
+            <div class="tips"></div>
+        </div>
+      </div>
+      <div class="form-group">
+          <div class="label">
+            <label>是否必填项：</label>
+          </div>
+          <div class="field">
+            <select name="isrequired" id="isrequired" class="input w50">
+              <option value="1" selected="selected">是</option>
+              <option value="0">否</option>
+            </select>
+            <div class="tips"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="label">
+          <label></label>
+        </div>
+        <div class="field">
+          <button class="button bg-main icon-check-square-o" type="button" id="submit"> 提交</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+<script type="text/javascript">
+$(document).ready(function(){
+	$("#submit").click(function(){
+		layer.confirm('确定这次操作？', {
+			btn: ['确定','取消']
+			}, function(){
+				var form=new FormData();
+				form.append("name",$("#name").val());
+				form.append("step",$("#step").val());
+				form.append("isrequired",$("#isrequired").val());
+				$.ajax({
+					url:hostname+"/bank/bank/business/classify/add?token="+$.cookie("token"),
+					type:"post",
+					data:form,
+					async:false,
+					contentType:false,
+					processData:false,
+					success:function(result){
+						var data=eval(result);
+						switch(data.code){
+						case 200:
+							alert("操作成功");
+							window.location.href="list.html";
+							break;
+						case 500:
+							alert("非法步骤");
+							break;
+						}
+					}
+				});
+			}, function(){
+
+			}
+		);
+	});
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="renderer" content="webkit">
+    <link rel="stylesheet" href="../../css/pintuer.css">
+    <link rel="stylesheet" href="../../css/admin.css">
+    <script src="../../js/jquery.js"></script>
+    <script src="../../js/pintuer.js"></script>  
+    <script src="../../js/constant.js"></script>  
+    <script src="../../js/jquery.cookie.js"></script>
+    <script src="../../js/util.js"></script>
+    
+</head>
+<style>
+table tr td{ text-align: left;}
+</style>
+<body>
+<div class="panel admin-panel">
+  <table class="table table-hover text-center">
+    
+  </table>
+</div>
+<div class="M-box"></div>
+<script type="text/javascript">
+$(document).ready(function(){
+	var form=new FormData();
+	form.append("page",0);
+	form.append("size",999);
+	$.ajax({
+		url:hostname+"/bank/bank/business/exports?token="+$.cookie("token"),
+		type:"post",
+		data:form,
+		async:false,
+		contentType:false,
+		processData:false,
+		success:function(result){
+			var data=eval(result);
+			$(".table").empty();
+			$(data.data).each(function(index,obj){
+				var remark=obj.remark;
+				if(obj.issync==0){
+					remark="文件未同步";
+				}else if(obj.acode=="0"){
+					remark="申请编号缺失";
+				}
+				$(".table").append("<tr>"+
+						"<td><input id='cb_"+obj.busid+"' name='busid' value='"+obj.busid+"' type='checkbox'/></td>"+ 
+						"<td>"+obj.code+"</td>"+      
+						"<td>"+obj.surname+"</td>"+       
+						"<td>"+remark+"</td>"+ 
+					"</tr>");
+				if(remark!="ok"){
+					$("#cb_"+obj.busid).prop("disabled",true);
+				}
+			});
+			$(".table").append("<tr>"+
+					"<td><input type='checkbox' id='all'/>全选</td>"+
+					"<td></td>"+
+					"<td></td>"+
+					"<td><button id='exports'>导出</button></td>"+
+				"</tr>");
+		}
+	});
+	/**
+	*全选
+	*/
+	$("#all").click(function(){
+		if(this.checked){   
+	        $(".table input:checkbox").each(function(index,obj){
+	        	if(!obj.disabled){
+	        		$(this).prop("checked",true);
+	        	}
+	        });
+	    }else{   
+			$(".table input:checkbox").prop("checked", false);
+	    }  
+	});
+	/**
+	 * 导出
+	 */
+	$("#exports").click(function(){
+		var form=new FormData();
+		var busids="";
+		$(".table tr td input:checked").each(function(index,obj){
+			if(obj.name=="busid"){
+				busids+=obj.value;
+				busids+=",";
+			}
+		});
+		if(busids==""){//如果导出编号集合空
+			return;
+		}
+		form.append("busids",busids);
+		$.ajax({
+			url:hostname+"/bank/bank/business/datum/leadout?token="+$.cookie("token"),
+			type:"post",
+			data:form,
+			async:false,
+			contentType:false,
+			processData:false,
+			success:function(result){
+				var data=eval(result);
+				window.location.href=filehostname+"/"+data.data;
+			}
+		});
+	});
+});
+</script>
+</body>
+</html>

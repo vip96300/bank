@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="renderer" content="webkit">
+    <link rel="stylesheet" href="../../../css/pintuer.css">
+    <link rel="stylesheet" href="../../../css/admin.css">
+    <script src="../../../js/jquery.js"></script>
+    <script src="../../../js/pintuer.js"></script>  
+    <script src="../../../js/constant.js"></script>  
+    <script src="../../../js/jquery.cookie.js"></script>
+    <script src="../../../js/base64.js"></script>
+    <script src="../../../js/util.js"></script>
+	<link href="../../../js/menu/css/style.css" rel="stylesheet" type="text/css">
+    <script src="../../../js/menu/js/index.js" type="text/javascript"></script>
+    <script src="../../../js/layer/layer.js"></script>
+    <script src="../../../js/laydate/laydate.js"></script>
+</head>
+<style>
+table tr td{ width: 25%;}
+table tr td p{text-align: left;}
+table tr td input{width: 100%;}
+table tr td select{width: 100%; }
+</style>
+<body>
+<nav>
+	<ul class="dropdown">
+	<!-- 菜单 -->
+	</ul>
+</nav>
+<a type='button' class='button border-main' style="padding:8px 30px;" href='javascript:void(0);' onclick='upd_batch_bank();'>保存</a> 
+<input type="hidden" id="curMenid"/>
+<table class="table table-hover text-center">
+
+</table>
+	<!-- <div class="form-group" id="operaList">
+		<div class="label" style="width: 100%;">
+			<div class='' style="float: right;">
+				<a type='button' class='button border-main' href='javascript:void(0);' onclick=upd_busid_state(11);><span class='icon-edit'></span>通过</a> 
+				<a type='button' class='button border-main' href='javascript:void(0);' onclick=upd_busid_state(12);><span class='icon-edit'></span>驳回</a> 
+				<a type='button' class='button border-main' href='javascript:void(0);' onclick=upd_busid_state(13);><span class='icon-edit'></span>拒绝</a>
+			</div>
+		</div>
+	</div> -->
+<script type="text/javascript">
+/**
+ * 资料审核
+ */
+function upd_busid_state(state){
+	layer.open({
+		type: 2,
+		title: '资料审核',
+		shadeClose: true,
+		shade: 0.5,
+		area: ['600px', '300px'],
+		content:['upd_busid_state.html?busid='+getParam("busid")+"&state="+state, 'no']
+	}); 
+}
+//跳转页面时提示保存
+var ischange=false;//是否修改标志
+//load menu begin
+function loadMenuList(pid){
+	var form=new FormData();
+	form.append("pid",pid);
+	$.ajax({
+		url:hostname+"/bank/bank/business/datum/menu/list_pid?token="+$.cookie("token"),
+		type:"post",
+		data:form,
+		async:false,
+		contentType:false,
+		processData:false,
+		success:function(result){
+			var data=eval(result);
+			$(data.data).each(function(index,obj){
+				if(pid==0){
+					$(".dropdown").append("<li class='drop'><a href='#' id='a_"+obj.menid+"' onclick=list_busid_menid("+obj.menid+")>"+obj.name+"</a>"+"</li>");
+				}
+			});
+			//发起默认数据
+			list_busid_menid(data.data[0].menid);
+		}
+	});
+}
+loadMenuList(0);
+//load menu end
+function list_busid_menid(menid){
+	if(ischange){
+		if(confirm("是否需要保存？")){
+			upd_batch_bank();
+			if(ischange){//保存成功后会改变ischange为false,如果还是true，说明没有保存成功，则不能跳转
+				return;
+			}
+		}
+	}
+	$("#curMenid").val(menid);
+	var form=new FormData();
+	form.append("busid",getParam("busid"));
+	form.append("menid",menid);
+	form.append("isrequired",1);
+	$.ajax({
+		url:hostname+"/bank/bank/business/datum/list_busid_menid_isrequired?token="+$.cookie("token"),
+		type:"post",
+		data:form,
+		async:false,
+		contentType:false,
+		processData:false,
+		success:function(result){
+			var data=eval(result);
+			$(".table").empty();
+			var lineTdNumber=4;
+			$.each(data.data,function(k,v){
+				var datum=JSON.parse(k);
+				var trlength=$(".table").find("tr:last").length;
+				var tdlength=$(".table").find("tr:last").find("td").length;
+				if(tdlength>=lineTdNumber||trlength==0){
+					$(".table").append("<tr></tr>");
+				}
+				if(datum.unit==null){//为空时放入空字符串
+					datum.unit="";
+				}else{
+					datum.unit="("+datum.unit+")";
+				}
+				switch(datum.intype){
+				case 0://输入
+					if(datum.value==null){
+						datum.value="";
+					}
+					$(".table").find("tr:last").append("<td datid="+datum.datid+" name="+datum.name+" namedepict="+datum.namedepict+">"+
+							"<p>"+datum.namedepict+"<span id='isrequired_"+datum.datid+"'></span>:"+datum.unit+"<input namid='"+datum.namid+"' length='"+datum.length+"' datatype='"+datum.datatype+"' style='float:none;' id='datum_"+datum.datid+"' type='text' value='"+datum.value+"'/></p>"+
+			      		"</td>");
+					break;
+				case 1://单选
+					$(".table").find("tr:last").append("<td datid="+datum.datid+" name="+datum.name+" namedepict="+datum.namedepict+">"+
+							"<p>"+datum.namedepict+":"+datum.unit+"<select style='float:none;' namid='"+datum.namid+"' id='datum_"+datum.datid+"'></select></p>"+
+			      		"</td>");
+					$(v).each(function(index,obj){
+						$("#datum_"+datum.datid).append("<option value='"+obj.value+"'>"+obj.depict+"</option>");
+					});
+					$("#datum_"+datum.datid).val(datum.value);
+					break;
+				}
+				if(datum.isrequired!=0){
+					$("#isrequired_"+datum.datid).html("&nbsp;<span style='color:red;'>*</span>&nbsp;");
+				}
+				if(datum.ischange==0){//如果不能改变需要设为不可修改
+					$("#datum_"+datum.datid).attr("disabled",true);
+				}
+			});
+			var tdlength=$(".table").find("tr:last").find("td").length;
+			for(var i=0;i<lineTdNumber-tdlength;i++){
+				$(".table").find("tr:last").append("<td></td>");
+			}
+			$("select[namid='7137']").parent().hide();//隐藏寄送地址类型
+		}
+	});
+	ischange=false;
+}
+
+/**
+ * 根据数据名字查找出数据
+ */
+function findDatumByName(datums,name){
+	for(var i=0;i<datums.length;i++){
+		if(datums[i].name==name){
+			return datums[i];
+		}
+	}
+	return null;
+}
+/**
+ * 输入框失去焦点
+ */
+$(document).on("blur","input,select",function(){
+	$(this).css("border-color","none");
+	ischange=true;
+})
+//是否长期有效-客户信息
+$(document).on("change","select[namid='7470']",function(){
+	if($("select[namid='7470']").val()=='0'){//否
+		$("input[namid='7441']").parent().show();
+	}
+	if($("select[namid='7470']").val()=='1'){//是
+		$("input[namid='7441']").parent().hide();
+	}
+});
+//汽车品牌与型号关联
+$(document).on("change","select[namid='7537']",function(){
+	$("select[namid='7538']").empty();
+	var form=new FormData();
+	form.append("fkvalue",$("select[namid='7537']").val());
+	$.ajax({
+		url:hostname+"/bank/bank/business/datum/attvalue/list_fkvalue?token="+$.cookie("token"),
+		type:"post",
+		data:form,
+		async:false,
+		contentType:false,
+		processData:false,
+		success:function(result){
+			var data=eval(result);
+			$(data.data).each(function(index,obj){
+				$("select[namid='7538']").append("<option value='"+obj.value+"'>"+obj.depict+"</option>");
+			});
+		}
+	});
+});
+/**
+ * 日期选择插件
+ */
+$(document).on("focus","input",function(){
+	if($(this).attr("datatype")=="date"){
+		$(this).attr("readonly",true);
+		var format="";
+		var type="";
+		if($(this).attr("length")==6){
+			format="yyyyMM";
+			type="month";
+		}
+		if($(this).attr("length")==8){
+			format="yyyyMMdd";
+			type="date";
+		}
+		if($(this).attr("length")==10){
+			format="yyyy-MM-dd";
+			type="date";
+		}
+		laydate.render({
+			elem:"#"+$(this).attr("id"),
+			format:format,
+			type:type
+		});
+	}
+})
+/**
+ * 批量修改值
+ */
+function upd_batch_bank(){
+	var tdList=$(".table").find("td");
+	var datums=new Array();
+	for(var i=0;i<tdList.length;i++){
+		var datum={
+			datid:$(tdList[i]).attr("datid"),
+			name:$(tdList[i]).attr("name"),
+			namedepict:$(tdList[i]).attr("namedepict"),
+			value:$("#datum_"+$(tdList[i]).attr("datid")).val(),
+			valuedepict:$("#datum_"+$(tdList[i]).attr("datid")).find("option:selected").text()
+		}
+		if($(tdList[i]).children().length==0){
+			continue;
+		}
+		datums.push(datum);
+	}
+	var form=new FormData();
+	form.append("busid",getParam("busid"));
+	form.append("menid",$("#curMenid").val());
+	form.append("datumsJSON",JSON.stringify(datums));
+	$.ajax({
+		url:hostname+"/bank/bank/business/datum/upd_batch_bank?token="+$.cookie("token"),
+		type:"post",
+		data:form,
+		async:false,
+		contentType:false,
+		processData:false,
+		success:function(result){
+			var data=eval(result);
+			if(data.code==200){
+				alert("操作成功");
+				ischange=false;//修改成功后
+			}else{
+				$("#datum_"+data.code).css("border-color","red");
+				alert(data.depict);
+			}
+		}
+	});
+}
+//页面离开检查是否保存
+window.onbeforeunload = function(){
+	if(ischange){
+		return "";
+	}
+}
+</script>
+</body>
+</html>

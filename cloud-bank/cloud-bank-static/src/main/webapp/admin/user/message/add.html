@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="renderer" content="webkit">
+<title></title>
+<link rel="stylesheet" href="../../css/pintuer.css">
+<link rel="stylesheet" href="../../css/admin.css">
+<script src="../../js/jquery.js"></script>
+<script src="../../js/pintuer.js"></script>
+<script src="../../js/constant.js"></script>  
+<script src="../../js/jquery.cookie.js"></script>
+</head>
+<body>
+<div class="panel admin-panel">
+  <div class="panel-head" id="add"><strong><span class="icon-pencil-square-o"></span>添加合作商</strong></div>
+  <div class="body-content">
+    <form method="post" class="form-x" action="">  
+      <div class="form-group">
+          <div class="label">
+            <label>合作商：</label>
+          </div>
+          <div class="field">
+            <select name="parid" id="parid" class="input w50">
+              
+            </select>
+            <div class="tips"></div>
+        </div>
+      </div>
+      <div class="form-group">
+          <div class="label">
+            <label>操作员：</label>
+          </div>
+          <div class="field">
+            <select name="opeid" id="opeid" class="input w50">
+              
+            </select>
+            <div class="tips"></div>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <div class="label">
+          <label>标题：</label>
+        </div>
+        <div class="field">
+          <input type="text" class="input w50" value="" name="title" id="title" data-validate="required:请输入标题" />
+          <div class="tips"></div>
+        </div>
+      </div> 
+      <div class="form-group">
+        <div class="label">
+          <label>内容：</label>
+        </div>
+        <div class="field">
+          <input type="text" class="input w50" value="" name="content" id="content" data-validate="required:请输入内容" />
+          <div class="tips"></div>
+        </div>
+      </div>  
+       
+      <div class="form-group">
+        <div class="label">
+          <label></label>
+        </div>
+        <div class="field">
+          <button class="button bg-main icon-check-square-o" type="button" id="submit"> 提交</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+<script type="text/javascript">
+//分页
+function pager(page,size){
+	var form=new FormData();
+	form.append("page",page);
+	form.append("size",size);
+	$.ajax({
+		url:hostname+"/bank/bank/bank/partner/list?token="+$.cookie("token"),
+		type:"post",
+		data:form,
+		async:false,
+		contentType:false,
+		processData:false,
+		success:function(result){
+			var data=eval(result);
+			switch(data.code){
+			case 200:
+				$("#parid").empty();
+				$("#parid").append("<option selected>请选择合作商</option>");
+				$(data.data).each(function(index,obj){
+					$("#parid").append("<option value="+obj.parid+">"+obj.surname+"</option");
+				});
+				break;
+			}
+		}
+	});
+}
+pager(0,999);
+$(document).ready(function(){
+	$("#parid").change(function(){
+		var form=new FormData();
+		form.append("parid",$(this).val());
+		$.ajax({
+			url:hostname+"/bank/bank/bank/partner/operator/list_parid?token="+$.cookie("token"),
+			type:"post",
+			data:form,
+			async:false,
+			contentType:false,
+			processData:false,
+			success:function(result){
+				var data=eval(result);
+				switch(data.code){
+				case 200:
+					$("#opeid").empty();
+					$("#opeid").append("<option selected value='0'>请选择操作员</option>");
+					$(data.data).each(function(index,obj){
+						$("#opeid").append("<option value="+obj.opeid+">"+obj.surname+"</option");
+					});
+					break;
+				}
+			}
+		});
+	});
+	//添加user
+	$("#submit").click(function(){
+		var form=new FormData();
+		form.append("parid",$("#parid").val());
+		form.append("opeid",$("#opeid").val());
+		form.append("title",$("#title").val());
+		form.append("content",$("#content").val());
+		$.ajax({
+			url:hostname+"/bank/bank/user/message/add?token="+$.cookie("token"),
+			type:"post",
+			data:form,
+			async:false,
+			contentType:false,
+			processData:false,
+			success:function(result){
+				var data=eval(result);
+				switch(data.code){
+				case 200:
+					alert("操作成功");
+					window.location.href="list.html";
+					break;
+				case 500:
+					break;
+				}
+			}
+		});
+	});
+});
+</script>
+</body>
+</html>

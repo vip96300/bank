@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="renderer" content="webkit">
+    <title>后台管理中心</title>  
+    <link rel="stylesheet" href="css/pintuer.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <script src="js/jquery.js"></script>
+    <script src="js/jquery.cookie.js"></script>
+    <script src="js/util.js"></script>   
+    <script src="js/constant.js"></script>   
+</head>
+<style>
+.left_pos{
+	position:relative;
+	height:100%;
+	width:100%;
+}
+.left_pos_btn{
+	height:100px;
+	width:30px;
+	position:absolute;
+	top:200px;
+	right:-0px;
+	background-image:url("images/direction.png");
+	z-index:100	;
+	cursor:pointer;
+}
+
+.header_pos_btn{
+	height:30px;
+	width:100px;
+	position:absolute;
+	background-image:url("images/direction_top.png");
+	bottom:0;
+	left:50%;
+	margin-left:-50px;
+	z-index:100	;
+	cursor:pointer;
+}
+</style>
+<body>
+<div class="header" style="background-color: #2D9ADE; background-image: none;">
+  <div class="header_pos_btn"></div>
+  <div class="logo margin-big-left fadein-top">
+    <h1><img src="images/logo.png" class="radius-circle rotate-hover" height="55" alt="" /></h1>
+  </div>
+  <div class="head-l">
+  	<a class="" href="javascript:void(0);" id="surname"></a> &nbsp;
+  </div>
+  <div class="head-l" style="float: right;">
+  	<a class="button button-little bg-green" href=""><span class="icon-home"></span> 前台首页</a> &nbsp;
+  	<a href="#" onclick="javascript:alert('清除缓存成功');" class="button button-little bg-blue"><span class="icon-wrench"></span> 清除缓存</a> &nbsp;
+  	<a class="button button-little bg-red" href="javascript:void(0);" id="logout"><span class="icon-power-off"></span> 退出登录</a> &nbsp;
+  </div>
+</div>
+<div class="leftnav">
+	<div class="left_pos">
+	<div class="left_pos_btn"></div>
+  <div id="level0" style="display: none;">
+	  <h2><span class="icon-terminal"></span>系统设置</h2>
+	  <ul style="display:none">
+	  	<li><a href="bank/list.html" target="right"><span class="icon-caret-right"></span>支行设置</a></li>
+	  	<li><a href="bank/business/classify/list.html" target="right"><span class="icon-caret-right"></span>档案归类</a></li>
+	  	<!-- <li><a href="bank/business/datum/menu/list_pid.html?pid=0" target="right"><span class="icon-caret-right"></span>资料录入管理</a></li> -->
+	  	<li><a href="bank/business/list_state.html?page=1&size=10&cstate=0" target="right"><span class="icon-caret-right"></span>所有业务</a></li>
+	  </ul> 
+	  <h2><span class="icon-user"></span>角色管理</h2>
+	  <ul style="display:none">
+	  	<li><a href="user/list.html" target="right"><span class="icon-caret-right"></span>业务员管理</a></li>
+	  	<li><a href="bank/partner/list.html" target="right"><span class="icon-caret-right"></span>合作商管理</a></li>
+	  	<li><a href="bank/partner/operator/list.html" target="right"><span class="icon-caret-right"></span>操作员管理</a></li>
+	  </ul>     
+  </div>
+  <div id="level1" style="display: none;">
+	  <h2><span class="icon-pencil-square-o"></span>业务管理</h2>
+	  <ul>
+	    <li><a href="bank/business/list_banid_state.html?page=1&size=10&cstate=0" target="right"><span class="icon-caret-right"></span>所有业务</a></li>      
+	  </ul>
+	  <h2><span class="icon-envelope"></span>个人设置</h2>
+	  <ul>
+	    <li><a href="user/setting/upd.html" target="right"><span class="icon-caret-right"></span>修改密码</a></li>
+	    <li><a href="user/message/list.html" target="right"><span class="icon-caret-right"></span>消息管理</a></li>   
+	  </ul> 
+  </div> 
+</div>
+</div>
+<script type="text/javascript">
+$(function(){
+  $(".leftnav h2").click(function(){
+	  $(this).next().slideToggle(200);	
+	  $(this).toggleClass("on"); 
+  })
+  $(".leftnav ul li a").click(function(){
+	    $("#a_leader_txt").text($(this).text());
+  		$(".leftnav ul li a").removeClass("on");
+		$(this).addClass("on");
+  })
+  var form=new FormData();
+  $.ajax({
+  	url:hostname+"/bank/bank/user/get_useid?token="+$.cookie("token"),
+  	type:"post",
+  	dataType:"json",
+	data:form,
+	async:false,
+	contentType:false,  
+	processData:false,
+	success:function(result){
+		var data=eval(result);
+		$("#surname").text("编号："+data.data.code+", 银行："+data.data.bankname+", 姓名："+data.data.surname);
+		switch(data.data.level){
+		case 0://超级管理员
+			$("#level0").show();
+			$("#level1").show();
+			break;
+		case 1://普通管理员
+			$("#level0").empty();
+			$("#level1").show();
+			break;
+		default:
+			window.location.href="login.html";
+			break;
+		}
+	},
+	error:function(){
+		alert("system error");
+		window.location.href="login.html";
+	}
+  });
+
+	//检查token状态
+	var token=$.cookie("token");
+	  if(token==null||token==""||token==undefined){
+		window.location.href="login.html";
+	}
+	//退出登录
+	$("#logout").click(function(){
+		$.cookie("token","");
+		window.location.href="login.html";
+  	});
+  
+});
+</script>
+<div class="admin">
+  <iframe scrolling="auto" rameborder="0" src="bank/business/list_banid_state.html?page=1&size=10&cstate=0" name="right" width="100%" height="100%"></iframe>
+</div>
+<script>
+$(".left_pos_btn").click(function(){
+	if($(".leftnav").hasClass("now")){
+		$(".leftnav").animate({"left":0});
+		$(".left_pos_btn").css("right",0);
+		$(".left_pos_btn").css("transform","rotate(360deg)");
+		$(".leftnav").removeClass("now");
+		$(".admin").animate({"left":180});
+	}else{
+		$(".leftnav").addClass("now");
+		$(".leftnav").animate({"left":-180});
+		$(".left_pos_btn").css("right",-30);
+		$(".left_pos_btn").css("transform","rotate(180deg)");
+		$(".admin").animate({"left":30});
+	}
+})
+
+$(".header_pos_btn").click(function(){
+	if($(".header").hasClass("now")){
+		$(".header").animate({"top":0});
+		$(".header_pos_btn").css("bottom",0);
+		$(".header_pos_btn").css("background-image","url(images/direction_top.png)");
+		$(".leftnav").animate({"top":70});
+		$(".header").removeClass("now");
+		$(".admin").animate({"top":70});
+	}else{
+		$(".header").addClass("now");
+		$(".header").animate({"top":-70});
+		$(".header_pos_btn").css("bottom",-30);
+		$(".header_pos_btn").css("background-image","url(images/direction_down.png)");
+		$(".leftnav").animate({"top":30});
+		$(".admin").animate({"top":30});
+	}
+})
+</script>
+</body>
+</html>

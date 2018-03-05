@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="renderer" content="webkit">
+    <link rel="stylesheet" href="../../../../css/pintuer.css">
+    <link rel="stylesheet" href="../../../../css/admin.css">
+    <script src="../../../../js/jquery.js"></script>
+    <script src="../../../../js/pintuer.js"></script>  
+    <script src="../../../../js/constant.js"></script>  
+    <script src="../../../../js/jquery.cookie.js"></script>
+    <script src="../../../../js/util.js"></script>
+    <script src="../../../../js/layer/layer.js"></script>
+    <script src="../../../../js/base64.js"></script>
+</head>
+<body>
+<div class="panel admin-panel">
+	<div class="panel-head"><strong class="icon-reorder">内容列表</strong></div>
+  <div class="padding border-bottom">  
+  <a class="button border-yellow" href="javascript:void(0);" onclick="add();"><span class="icon-plus-square-o"></span> 添加属性名</a>
+  </div> 
+  <table class="table table-hover text-center">
+    
+  </table>
+</div>
+<div class="M-box"></div>
+<script type="text/javascript">
+function list_menid(){
+	var form=new FormData();
+	form.append("menid",getParam("menid"));
+	$.ajax({
+		url:hostname+"/bank/bank/business/datum/attname/list_menid?token="+$.cookie("token"),
+		type:"post",
+		data:form,
+		async:false,
+		contentType:false,
+		processData:false,
+		success:function(result){
+			var data=eval(result);
+			switch(data.code){
+			case 200:
+				$(".table").empty();
+				$(".table").append("<tr>"+
+					      "<th>属性名称</th>"+   
+					      "<th>属性描述</th>"+  
+					      "<th>数据长度</th>"+
+					      "<th>是否必填</th>"+
+					      "<th>输入类型</th>"+
+					      "<th>默认值</th>"+
+					      "<th>补位规则</th>"+
+					      "<th>备注说明</th>"+
+					      "<th>是否需要面签录入</th>"+
+					    "</tr>");
+				$(data.data).each(function(index,obj){
+					$(".table").append("<tr>"+
+						      "<td>"+obj.name+"</td>"+      
+						      "<td>"+obj.depict+"</td>"+ 
+						      "<td>"+obj.length+"</td>"+
+						      "<td>"+obj.isrequired+"</td>"+
+						      "<td id='intype_"+obj.namid+"'>"+obj.intype+"</td>"+
+						      "<td>"+obj.defvalue+"</td>"+
+						      "<td>"+obj.cover+"</td>"+
+						      "<td>"+obj.remark+"</td>"+
+						      "<td>"+obj.isget+"</td>"+
+						      "<td><div class='button-group' onclick='upd("+obj.namid+");'><input id='json_"+obj.namid+"' type='hidden'/><a type='button' class='button border-main' href='javascript:void(0);'><span class='icon-edit'></span>修改</a></div></td>"+
+						      "<td><div class='button-group'><a onclick='del_namid("+obj.namid+");' namid='"+obj.namid+"' type='button' class='button border-main' href='javascript:void(0);'><span class='icon-edit'></span>删除</a></div></td>"+ 
+						    "</tr> ");
+					$("#json_"+obj.namid).val(JSON.stringify(obj));
+					if(obj.intype!=0){
+						$("#intype_"+obj.namid).html("<a type='button' class='button border-main' href='javascript:void(0);' onclick=window.location.href='../attvalue/list_namid.html?namid="+obj.namid+"'><span class='icon-edit'></span>选项列表</a>");
+					}else{
+						$("#intype_"+obj.namid).html("主动输入")
+					}
+				});
+				break;
+			}
+		}
+	});
+}
+list_menid();
+/**
+ * 添加属性
+ */
+function add(){
+	window.location.href="add.html?menid="+getParam("menid");
+}
+/**
+ * 修改属性
+ */
+function upd(namid){
+	var json=$("#json_"+namid).val();
+	window.location.href="upd.html?menid="+getParam("menid")+"&attname="+BASE64.encoder(JSON.stringify(json));	
+}
+/**
+ * 删除
+ */
+function del_namid(namid){
+	var form=new FormData();
+	form.append("namid",namid);
+	$.ajax({
+		url:hostname+"/bank/bank/business/datum/attname/del_namid?token="+$.cookie("token"),
+		type:"post",
+		data:form,
+		async:false,
+		contentType:false,
+		processData:false,
+		success:function(result){
+			var data=eval(result);
+			switch(data.code){
+			case 200:
+				alert("操作成功");
+				window.location.href="list_menid.html?menid="+getParam("menid");
+				break;
+			}
+		}
+	});
+}
+	 
+</script>
+</body>
+</html>

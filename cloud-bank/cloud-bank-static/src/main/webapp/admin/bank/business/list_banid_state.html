@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="renderer" content="webkit"/>
+    <link rel="stylesheet" href="../../css/pintuer.css"/>
+    <link rel="stylesheet" href="../../css/admin.css"/>
+    <link rel="stylesheet" href="../../js/pagination/style/pagination.css"/>
+    <script src="../../js/jquery.js"></script>
+    <script src="../../js/pintuer.js"></script>  
+    <script src="../../js/pagination/script/jquery.pagination.js"></script>  
+    <script src="../../js/constant.js"></script>  
+    <script src="../../js/jquery.cookie.js"></script>
+    <script src="../../js/util.js"></script>
+    <script src="../../js/layer/layer.js"></script>
+</head>
+<style>
+.circle {
+	width: 10px;
+	height: 10px;
+	background-color:green;
+	-webkit-border-radius: 5px;
+}
+</style>
+<body>
+<div class="panel admin-panel">
+  <div class="padding border-bottom">  
+  	<div class="form-group">
+        <div class="field">
+          	<select class="w50" id="state">
+          		<optgroup label="其他">
+          			<option value=0 selected="selected">全部</option>
+          		</optgroup>
+          		<optgroup label="初审">
+	          		<option value=1>待提交</option>
+	          		<option value=2>待审核</option>
+	          		<option value=3>通过</option>
+	          		<option value=4>驳回</option>
+	          		<option value=5>拒绝</option>
+          		</optgroup>
+          		<optgroup label="签约">
+          			<option value=6>待审核</option>
+	          		<option value=7>通过</option>
+	          		<option value=8>驳回</option>
+	          		<option value=9>拒绝</option>
+          		</optgroup>
+          		<optgroup label="审批">
+					<!-- <option value=10>待审核</option> -->
+	          		<option value=11>上传开户中</option>
+	          		<option value=12>驳回</option>
+	          		<option value=13>拒绝</option>
+	          		<option value=14>已放款</option>
+          		</optgroup>
+          	</select>
+        </div>
+      </div>
+  </div> 
+  <div class="panel-head" style="padding: 0; border-bottom: none;">
+  	<input type="text" class="w50" id="clause" placeholder="姓名或身份证号"/>
+  	<button id="search" class="button bg-main" type="button">搜索</button>
+  </div>
+  <table class="table table-hover text-center">
+    
+  </table>
+</div>
+<div class="M-box"></div>
+<script type="text/javascript">
+//分页
+function pager(state,page,size){
+	var form=new FormData();
+	form.append("state",state);
+	form.append("page",page-1);
+	form.append("size",size);
+	$.ajax({
+		url:hostname+"/bank/bank/business/list_banid_state?token="+$.cookie("token"),
+		type:"post",
+		data:form,
+		async:false,
+		contentType:false,
+		processData:false,
+		success:function(result){
+			var data=eval(result);
+			each(data);
+		}
+	});
+}
+/**
+ * 查看审核记录
+ */
+function list_busid(busid){
+	layer.open({
+		type: 2,
+		title: '审核记录',
+		shadeClose: true,
+		shade: 0.5,
+		area: ['600px', '300px'],
+		content:['verify/list_busid.html?busid='+busid, 'no']
+	}); 	
+}
+/**
+ * each data
+ */
+function each(data){
+	$(".table").empty();
+	$(".table").append("<tr>"+
+		      "<th>业务编号</th>"+ 
+		      "<th>合作商</th>"+ 
+		      "<th>姓名</th>"+
+		      "<th>身份证号码</th>"+
+		      "<th>手机号</th>"+
+		      "<th>业务状态</th>"+
+		      "<th>申请时间</th>"+
+		      "<th>文件情况</th>"+
+		      "<th>操作</th>"+
+		    "</tr>");
+	$(data.data).each(function(index,obj){
+		$(".table").append("<tr>"+
+			      "<td>"+obj.code+"</td>"+   
+			      "<td>"+obj.parname+"</td>"+  
+			      "<td>"+obj.surname+"</td>"+  
+			      "<td>"+obj.idcard+"</td>"+
+			      "<td>"+obj.telephone+"</td>"+ 
+			      "<td id='state_"+obj.busid+"'></td>"+ 
+			      "<td id='time_"+obj.busid+"'></td>"+ 
+			      "<td id='isimgerr_"+obj.busid+"'><div class='circle'></div></td>"+ 
+			      "<td>"+
+			      	"<div class='button-group'>"+
+			      		"<a type='button' class='button border-main' href='javascript:void(0);' onclick=window.location.href='item_banid_state.html?page="+page+"&size="+size+"&cstate="+state+"&busid="+obj.busid+"'><span class='icon-edit'></span>查看</a>"+
+			      		"<a type='button' class='button border-main' href='javascript:void(0);' onclick=list_busid("+obj.busid+");><span class='icon-edit'></span>查看审核记录</a>"+
+			      	"</div>"+
+			      "</td>"+
+			    "</tr> ");
+		$("#time_"+obj.busid).text(format(obj.time));
+		if(obj.isimgerr==1){//如果影像驳回，需要将圆点背景设置为红色
+			$("#isimgerr_"+obj.busid).children(".circle").css("background-color","red");
+			console.log($("#isimgerr_"+obj.busid).children(".circle"));
+		}
+		switch(obj.state){
+		case 1:
+			$("#state_"+obj.busid).html("初审待提交");
+			break;
+		case 2:
+			$("#state_"+obj.busid).html("初审待审核");
+			break;
+		case 3:
+			$("#state_"+obj.busid).html("初审通过");
+			break;
+		case 4:
+			$("#state_"+obj.busid).html("初审驳回");
+			break;
+		case 5:
+			$("#state_"+obj.busid).html("初审拒绝");
+			break;
+		case 6:
+			$("#state_"+obj.busid).html("签约待审核");
+			break;
+		case 7:
+			$("#state_"+obj.busid).html("签约通过");
+			break;
+		case 8:
+			$("#state_"+obj.busid).html("签约驳回修改中");
+			break;
+		case 9:
+			$("#state_"+obj.busid).html("签约拒绝");
+			break;
+		case 10:
+			$("#state_"+obj.busid).html("审批待审核");
+			break;
+		case 11:
+			$("#state_"+obj.busid).html("审批上传开户中");
+			break;
+		case 12:
+			$("#state_"+obj.busid).html("审批驳回");
+			break;
+		case 13:
+			$("#state_"+obj.busid).html("审批拒绝");
+			break;
+		case 14:
+			$("#state_"+obj.busid).html("已放款");
+			break;
+		}
+	});
+}
+var count=0;
+var page=getParam("page");
+var size=getParam("size");
+var state=getParam("cstate");
+console.log("page="+page+"size="+size+"state="+state);
+$("#state").val(state);
+function counter(){
+	var form=new FormData();
+	form.append("token",$.cookie("token"));
+	form.append("state",state);
+	//获取总数
+	$.ajax({
+		url:hostname+"/bank/bank/business/count_banid_state?token="+$.cookie("token"),
+		type:"post",
+		data:form,
+		dataType:"json",
+		async:false,
+		contentType:false,  
+		processData:false,
+		success:function(result){
+			var data=eval(result);
+			count=data.data;
+			pager(state,1,size);
+			$('.M-box').pagination({
+				totalData:data.data,
+				showData:size,
+				current:page,
+				callback:function(index){
+					pager(state,index.getCurrent(),size);
+				}
+			});
+			console.log(count);
+		}
+	});	
+}
+counter(state,page,size);
+$("#state").change(function(){
+	page=1;
+	state=$(this).val();
+	counter(state,page,size);
+});
+/**
+ * 根据用户姓名或身份证号统计数据
+ */
+$("#search").click(function(){
+	page=1;
+	var form=new FormData();
+	form.append("state",$("#state").val());
+	form.append("surname",$("#clause").val());
+	form.append("idcard",$("#clause").val());
+	//获取总数
+	$.ajax({
+		url:hostname+"/bank/bank/business/count_banid_state_surname_idcard?token="+$.cookie("token"),
+		type:"post",
+		data:form,
+		dataType:"json",
+		async:false,
+		contentType:false,  
+		processData:false,
+		success:function(result){
+			var data=eval(result);
+			count=data.data;
+			list_banid_state_surname_idcard(state,$("#clause").val(),$("#clause").val(),page,size);
+			$('.M-box').pagination({
+				totalData:data.data,
+				showData:count,
+				current:page,
+				callback:function(index){
+					list_banid_state_surname_idcard(state,$("#clause").val(),$("#clause").val(),index.getCurrent(),size);
+				}
+			});
+			console.log(count);
+		}
+	});	
+});
+/**
+ * 根据用户名或身份证号获取数据
+ */
+function list_banid_state_surname_idcard(state,surname,idcard,page,size){
+	var form=new FormData();
+	form.append("state",state);
+	form.append("surname",surname);
+	form.append("idcard",idcard);
+	form.append("page",page-1);
+	form.append("size",size);
+	$.ajax({
+		url:hostname+"/bank/bank/business/list_banid_state_surname_idcard?token="+$.cookie("token"),
+		type:"post",
+		data:form,
+		async:false,
+		contentType:false,
+		processData:false,
+		success:function(result){
+			var data=eval(result);
+			each(data);
+		}
+	});
+}
+</script>
+</body>
+</html>

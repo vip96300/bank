@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="renderer" content="webkit">
+<title></title>
+<link rel="stylesheet" href="../../css/pintuer.css">
+<link rel="stylesheet" href="../../css/admin.css">
+<script src="../../js/jquery.js"></script>
+<script src="../../js/pintuer.js"></script>
+<script src="../../js/util.js"></script>
+<script src="../../js/constant.js"></script>
+<script src="../../js/jquery.cookie.js"></script>
+<script src="../../js/base64.js"></script>
+<script src="../../js/layer/layer.js"></script>
+</head>
+<body>
+<div class="panel admin-panel">
+  <div class="panel-head"><strong><span class="icon-key"></span> 修改合作商</strong></div>
+  <div class="body-content">
+    <form method="post" class="form-x" action="">    
+      <div class="form-group">
+        <div class="label">
+          <label>合作商名称：</label>
+        </div>
+        <div class="field">
+          <input type="text" class="input w50" id="surname" name="surname" size="50" data-validate="required:请输入姓名" />       
+        </div>
+      </div> 
+      <div class="form-group">
+        <div class="label">
+          <label>合作商服务器IP：</label>
+        </div>
+        <div class="field">
+          <input type="text" class="input w50" id="hostname" name="hostname" size="50" data-validate="required:请输入合作商服务器IP" />       
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="label">
+          <label>初审通过通知地址：</label>
+        </div>
+        <div class="field">
+          <input type="text" class="input w50" id="noticeurl" name="noticeurl" size="50"/>       
+        </div>
+      </div>      
+      <div class="form-group">
+        <div class="label">
+          <label></label>
+        </div>
+        <div class="field">
+          <button class="button bg-main icon-check-square-o" type="button" id="submit"> 提交</button>   
+        </div>
+      </div>      
+    </form>
+  </div>
+</div>
+<script type="text/javascript">
+$(document).ready(function(){
+	$("#surname").val(BASE64.decoder(getParam("surname")));
+	$("#hostname").val(getParam("hostname"));
+	//添加user
+	$("#submit").click(function(){
+		layer.confirm('确定这次操作？', {
+			btn: ['确定','取消']
+			}, function(){
+				var form=new FormData();
+				form.append("surname",$("#surname").val());
+				form.append("parid",getParam("parid"));
+				form.append("hostname",$("#hostname").val());
+				form.append("noticeurl",$("#noticeurl").val());
+				$.ajax({
+					url:hostname+"/bank/bank/bank/partner/upd_parid?token="+$.cookie("token"),
+					type:"post",
+					data:form,
+					async:false,
+					contentType:false,
+					processData:false,
+					success:function(result){
+						var data=eval(result);
+						switch(data.code){
+						case 200:
+							alert("操作成功");
+							window.location.href="list.html";
+							break;
+						case 500:
+							alert("unknow partner hostname");
+							break;
+						}
+					}
+				});
+			}, function(){
+
+			}
+		);
+	});
+});
+</script>
+</body>
+</html>

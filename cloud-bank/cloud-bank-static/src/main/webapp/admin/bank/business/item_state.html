@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="renderer" content="webkit">
+<title></title>
+<link rel="stylesheet" href="../../css/pintuer.css">
+<link rel="stylesheet" href="../../css/admin.css">
+<script src="../../js/jquery.js"></script>
+<script src="../../js/pintuer.js"></script>
+<script src="../../js/util.js"></script>
+<script src="../../js/constant.js"></script>
+<script src="../../js/jquery.cookie.js"></script>
+<script src="../../js/util.js"></script>
+<script src="../../js/layer/layer.js"></script>
+</head>
+<style>
+* { margin: 0; padding: 0;}
+#archiveList { width:100%;}
+.table tr td {border: none;}
+.table tr td a{text-decoration: underline ;}
+</style>
+<body>
+<div class="panel admin-panel">
+  <div class="panel-head"><strong><span class="icon-key"></span>业务详情</strong></div>
+  <div class="body-content">
+    <form method="post" class="form-x" action="">    
+      <div class="form-group">
+        <div class="label">
+          <label>业务编号：</label>
+        </div>
+        <div class="label" style="width:30%;">
+          <label id="code">loading</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="label">
+          <label>客户姓名：</label>
+        </div>
+        <div class="label" style="width:30%;">
+          <label id="surname">loading</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="label">
+          <label>身份证号：</label>
+        </div>
+        <div class="label" style="width:30%;">
+          <label id="idcard">loading</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="label">
+          <label>手机号：</label>
+        </div>
+        <div class="label" style="width:30%;">
+          <label id="telephone">loading</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="label">
+          <label>业务状态：</label>
+        </div>
+        <div class="label" style="width:30%;">
+          <label id="state">loading</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="label">
+          <label>备注：</label>
+        </div>
+        <div class="label" style="width:30%;">
+          <textarea rows="5"  style="resize:none;" class="input" id="remark"></textarea>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="label">
+          <label>业务创建时间：</label>
+        </div>
+        <div class="label" style="width:30%;">
+          <label id="time">loading</label>
+        </div>
+      </div>
+      <div class="form-group" id="acode-form" style="display:none;">
+        <div class="label">
+          <label>申请编号：</label>
+        </div>
+        <div class="filed" style="width:100%;">
+          <input type="text" id="acode" class="input w50" data-validate="required:请输入申请编号" maxlength="17" min="10000000000000000"/>
+        </div>
+        <a type='button' class='button border-main' href='javascript:void(0);' id="upd_acode"><span class='icon-edit'></span>录入</a>
+      </div>
+      <div class="form-group" id="download-form">
+        <div class="label">
+          <label>文件：</label>
+        </div>
+        <div class="label" style="width:20%;">
+          <a type='button' class='button border-main' href='javascript:void(0);' id="download_batch"><span class='icon-edit'></span>点击下载客户资料</a>
+        </div>
+      </div>
+      <div id="archiveList">
+      	<!-- 客户资料 -->
+      </div>
+      <div class="form-group">
+        <div class="label" style="width:100%;">
+	        <div class=''>
+		        <a type='button' id="datum-a" class='button border-main' href='javascript:void(0);' onclick="datum();"><span class='icon-edit'></span>资料录入</a>
+	        </div>
+        </div>
+      </div>
+      <div class="form-group" id="operaList">
+        <div class="label" style="width:100%;">
+	        <div class=''>
+		        <a type='button' class='button border-main' href='javascript:void(0);' onclick=upd_busid_state(3);><span class='icon-edit'></span>通过</a>
+		        <a type='button' class='button border-main' href='javascript:void(0);' onclick=upd_busid_state(4);><span class='icon-edit'></span>驳回</a>
+		        <a type='button' class='button border-main' href='javascript:void(0);' onclick=upd_busid_state(5);><span class='icon-edit'></span>拒绝</a>
+	        </div>
+        </div>
+      </div>
+      <div class="form-group" id="operaList2" style="display: none;">
+        <div class="label" style="width:100%;">
+	        <div class=''>
+	        	<a type='button' class='button border-main' href='javascript:void(0);' onclick=upd_busid_isimgerr();><span class='icon-edit'></span>文件驳回</a>
+		        <a type='button' class='button border-main' href='javascript:void(0);' onclick=upd_busid_state(12);><span class='icon-edit'></span>信息驳回</a>
+	        </div>
+        </div>
+      </div>        
+    </form>
+  </div>
+</div>
+<script type="text/javascript">
+/**
+ * 录入申请编号
+ */
+$("#upd_acode").click(function(){
+	var form=new FormData();
+	form.append("acode",$("#acode").val());
+	form.append("busid",getParam("busid"));
+	$.ajax({
+		url:hostname+"/bank/bank/business/upd_acode_busid?token="+$.cookie("token"),
+		type:"post",
+		data:form,
+		async:false,
+		contentType:false,
+		processData:false,
+		success:function(result){
+			var data=eval(result);
+			switch(data.code){
+			case 200:
+				alert("操作成功");
+				break;
+			case 500:
+				alert("申请编号重复");
+				break;
+			default:
+				alert("操作失败");
+				break;
+			}
+		}
+	});
+});
+/**
+ * 驳回
+ */
+function upd_busid_state(state){
+	layer.open({
+		type: 2,
+		title: '资料审核',
+		shadeClose: true,
+		shade: 0.5,
+		area: ['600px', '300px'],
+		content:['upd_busid_state.html?busid='+getParam("busid")+"&state="+state+"&level="+getParam("level")+"&cstate="+getParam("cstate")+"&page="+getParam("page")+"&size="+getParam("size"), 'no']
+	}); 
+}
+/**
+ * 文件驳回
+ */
+function upd_busid_isimgerr(){
+	layer.open({
+		type: 2,
+		title: '资料审核',
+		shadeClose: true,
+		shade: 0.5,
+		area: ['600px', '300px'],
+		content:['upd_busid_isimgerr.html?busid='+getParam("busid")+"&state="+state+"&level="+getParam("level")+"&cstate="+getParam("cstate")+"&page="+getParam("page")+"&size="+getParam("size"), 'no']
+	}); 
+}
+/**
+ * 查看用户录入的资料信息
+ */
+function datum(){
+	window.location.href="datum/list.html?busid="+getParam("busid");
+}
+$(document).ready(function(){
+	//点击下载客户资料
+	$("#download_batch").click(function(){
+		window.location.href=hostname+"/file/file/download_batch?code="+$("#code").text()+"&token="+$.cookie("token");
+	});
+	var form=new FormData();
+	form.append("busid",getParam("busid"));
+	$.ajax({
+		url:hostname+"/bank/bank/business/get_busid?token="+$.cookie("token"),
+		type:"post",
+		data:form,
+		async:false,
+		contentType:false,
+		processData:false,
+		success:function(result){
+			var data=eval(result);
+			$("#code").text(data.data.code);
+			$("#surname").text(data.data.surname);
+			$("#idcard").text(data.data.idcard);
+			$("#telephone").text(data.data.telephone);
+			$("#remark").text(data.data.remark);
+			$("#time").text(format(data.data.time));
+			$("#acode").val(data.data.acode);
+			if(data.data.state!=2){
+				//初审待审核状态才显示初审按钮
+				$("#operaList").hide();
+			}
+			if(data.data.state>=7){
+				//面签审核通过后才显示申请编号录入
+				$("#acode-form").show();
+			}
+			if(data.data.state==1){
+				//如果初审资料未提交不显示文件下载按钮
+				$("#download-form").hide();
+			}
+			if(data.data.state<7){
+				//如果state小于面签通过状态不显示资料录入按钮
+				$("#datum-a").hide();
+			}
+			if(data.data.state==10||data.data.state==11){
+				//放款待审核或上传开户中都显示操作按钮
+				$("#operaList2").show();
+			}
+			switch(data.data.state){
+			case 1://待提交
+				$("#state").text("初审待提交");
+				break;
+			case 2://待审核
+				$("#state").text("初审待审核");
+				break;
+			case 3://已通过
+				$("#state").text("初审通过");
+				break;
+			case 4://已驳回
+				$("#state").text("初审驳回");
+				break;
+			case 5://已拒绝
+				$("#state").text("初审拒绝");
+				break;
+			case 6://面签已提交
+				$("#state").text("签约待审核");
+				break;
+			case 7://面签已通过
+				$("#state").text("签约通过");
+				break;
+			case 8://面签已驳回
+				$("#state").text("签约驳回");
+				break;
+			case 9://面签已拒绝
+				$("#state").text("签约拒绝");
+				break;
+			case 10:
+				$("#state").html("审批审核中");
+				break;
+			case 11:
+				$("#state").html("审批上传开户中");
+				break;
+			case 12:
+				$("#state").html("审批驳回");
+				break;
+			case 13:
+				$("#state").html("审批拒绝");
+				break;
+			case 14:
+				$("#state").html("已放款");
+				break;
+			}
+		}
+	});
+	//加载初审文件
+	form=new FormData();
+	form.append("busid",getParam("busid"));
+	$.ajax({
+		url:hostname+"/bank/bank/business/archive/classify_archives_busid?token="+$.cookie("token"),
+		type:"post",
+		data:form,
+		async:false,
+		contentType:false,
+		processData:false,
+		success:function(result){
+			$("#archiveList").empty();
+			var data=eval(result);
+			$.each(data.data,function(key){ 
+				var classify=$.parseJSON(key);
+				$("#archiveList").append("<div class='form-group'>"+
+				        "<div class='label' style='width:100%;font-weight:bold;text-align:left;'>"+
+				        classify.name+
+		          		"<hr/>"+
+		        	"</div>"+
+		        	"<table id='archives_"+classify.claid+"' class='table table-hover text-center'></table>"+
+		      	"</div>");
+				$.each(data.data[key],function(k,v){
+					var format =v.content.substr(v.content.indexOf("."));
+					var time=Util.format(v.time);
+					var filename=v.content.split("/")[v.content.split("/").length-1];
+					$("#archives_"+classify.claid).append("<tr><td>"+v.position+"</td><td>"+time+"</td><td>"+filename+"</td><td><a href='"+filehostname+"/"+v.content+"'>查看</a></td></tr>");
+				});
+			});
+		}
+	});
+});
+var Util={
+	add0:function(m){
+		return m<10?'0'+m:m ;
+	},
+	format:function(timestamp){
+		var time = new Date(timestamp);
+		var year = time.getFullYear();
+		var month = time.getMonth()+1;
+		var date = time.getDate();
+		var hours = time.getHours();
+		var minutes = time.getMinutes();
+		var seconds = time.getSeconds();
+		return year+'-'+add0(month)+'-'+add0(date)+' '+add0(hours)+':'+add0(minutes)+':'+add0(seconds);
+	}
+}
+</script>
+</body>
+</html>

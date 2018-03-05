@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="renderer" content="webkit">
+<title></title>
+<link rel="stylesheet" href="../../../css/pintuer.css">
+<link rel="stylesheet" href="../../../css/admin.css">
+<script src="../../../js/jquery.js"></script>
+<script src="../../../js/pintuer.js"></script>
+<script src="../../../js/constant.js"></script>  
+<script src="../../../js/jquery.cookie.js"></script>
+<script src="../../../js/layer/layer.js"></script>
+</head>
+<body>
+<div class="panel admin-panel">
+  <div class="panel-head" id="add"><strong><span class="icon-pencil-square-o"></span>添加操作员</strong></div>
+  <div class="body-content">
+    <form method="post" class="form-x" action="">  
+      <div class="form-group">
+          <div class="label">
+            <label>所属支行：</label>
+          </div>
+          <div class="field">
+            <select name="banid" id="banid" onchange="partners(this.value);" class="input w50">
+              
+            </select>
+            <div class="tips"></div>
+        </div>
+      </div>
+      <div class="form-group">
+          <div class="label">
+            <label>合作商：</label>
+          </div>
+          <div class="field">
+            <select name="parid" id="parid" class="input w50">
+              
+            </select>
+            <div class="tips"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="label">
+          <label>用户名：</label>
+        </div>
+        <div class="field">
+          <input type="text" class="input w50" value="" name="username" id="username" data-validate="required:请输入用户名" />
+          <div class="tips"></div>
+        </div>
+      </div>  
+      <div class="form-group">
+        <div class="label">
+          <label>姓名：</label>
+        </div>
+        <div class="field">
+          <input type="text" class="input w50" value="" name="surname" id="surname" data-validate="required:请输入姓名" />
+          <div class="tips"></div>
+        </div>
+      </div> 
+       <div class="form-group">
+        <div class="label">
+          <label>是否银行端操作员者：</label>
+        </div>
+        <div class="field">
+          <select name="isadmin" id="isadmin" class="input w50">
+              <option value=1>是</option>
+              <option value=0>否</option>
+            </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="label">
+          <label></label>
+        </div>
+        <div class="field">
+          <button class="button bg-main icon-check-square-o" type="button" id="submit"> 提交</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+<script type="text/javascript">
+//分页
+function pager(page,size){
+	var form=new FormData();
+	form.append("page",page);
+	form.append("size",size);
+	$.ajax({
+		url:hostname+"/bank/bank/bank/list?token="+$.cookie("token"),
+		type:"post",
+		data:form,
+		async:false,
+		contentType:false,
+		processData:false,
+		success:function(result){
+			var data=eval(result);
+			switch(data.code){
+			case 200:
+				$("#banid").empty();
+				$("#banid").append("<option selected>请选择银行</option>");
+				$(data.data).each(function(index,obj){
+					$("#banid").append("<option value="+obj.banid+">"+obj.name+"</option");
+				});
+				break;
+			}
+		}
+	});
+}
+pager(0,999);
+function partners(banid){
+	var form=new FormData();
+	form.append("banid",$("#banid").val());
+	$.ajax({
+		url:hostname+"/bank/bank/bank/partner/list_banid?token="+$.cookie("token"),
+		type:"post",
+		data:form,
+		async:false,
+		contentType:false,
+		processData:false,
+		success:function(result){
+			var data=eval(result);
+			switch(data.code){
+			case 200:
+				$("#parid").empty();
+				$("#parid").append("<option selected>请选择合作商</option>");
+				$(data.data).each(function(index,obj){
+					$("#parid").append("<option value="+obj.parid+">"+obj.surname+"</option");
+				});
+				break;
+			}
+		}
+	});
+}
+$(document).ready(function(){
+	//添加user
+	$("#submit").click(function(){
+		layer.confirm('确定这次操作？', {
+			btn: ['确定','取消']
+			}, function(){
+				var form=new FormData();
+				form.append("banid",$("#banid").val());
+				form.append("parid",$("#parid").val());
+				form.append("username",$("#username").val());
+				form.append("surname",$("#surname").val());
+				form.append("isadmin",$("#isadmin").val());
+				$.ajax({
+					url:hostname+"/bank/bank/bank/partner/operator/add?token="+$.cookie("token"),
+					type:"post",
+					data:form,
+					async:false,
+					contentType:false,
+					processData:false,
+					success:function(result){
+						var data=eval(result);
+						switch(data.code){
+						case 200:
+							alert("操作成功");
+							window.location.href="list.html";
+							break;
+						default:
+							alert("操作失败");
+							break;
+						}
+					}
+				});
+			}, function(){
+
+			}
+		);
+	});
+});
+</script>
+</body>
+</html>

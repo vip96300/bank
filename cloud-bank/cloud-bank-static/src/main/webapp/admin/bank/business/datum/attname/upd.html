@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="renderer" content="webkit">
+<title></title>
+<link rel="stylesheet" href="../../../../css/pintuer.css">
+<link rel="stylesheet" href="../../../../css/admin.css">
+<script src="../../../../js/jquery.js"></script>
+<script src="../../../../js/pintuer.js"></script>
+<script src="../../../../js/constant.js"></script>  
+<script src="../../../../js/jquery.cookie.js"></script>
+<script src="../../../../js/util.js"></script>
+<script src="../../../../js/base64.js"></script>
+</head>
+<body>
+<div class="panel admin-panel">
+  <div class="body-content">
+    <form method="post" id="form" class="form-x" action="">  
+      <div class="form-group">
+        <div class="label">
+          <label>属性名称：</label>
+        </div>
+        <div class="field">
+          <input type="text" class="input w50" value="" name="name" id="name" data-validate="required:请输入名称" />
+          <div class="tips"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="label">
+          <label>字段描述：</label>
+        </div>
+        <div class="field">
+          <input type="text" class="input w50" value="" name="depict" id="depict" data-validate="required:请输入字段描述" />
+          <div class="tips"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="label">
+          <label>数据长度(整数)：</label>
+        </div>
+        <div class="field">
+          <input type="text" class="input w50" value="" name="length" id="length" data-validate="required:请输入数据长度" />
+          <div class="tips"></div>
+        </div>
+      </div> 
+      <div class="form-group">
+          <div class="label">
+            <label>是否必填：</label>
+          </div>
+          <div class="field">
+            <select name="isrequired" id="isrequired" class="input w50">
+              <option value="1" selected="selected">必填项</option>
+              <option value="0">选填项</option>
+            </select>
+            <div class="tips"></div>
+        </div>
+      </div>
+      <div class="form-group">
+          <div class="label">
+            <label>输入类型：</label>
+          </div>
+          <div class="field">
+            <select name="intype" id="intype" class="input w50">
+              <option value="0" selected="selected">输入</option>
+              <option value="1">单选</option>
+              <option value="2">多选</option>
+            </select>
+            <div class="tips"></div>
+        </div>
+      </div>  
+      <div class="form-group">
+        <div class="label">
+          <label>数据默认值：</label>
+        </div>
+        <div class="field">
+          <input type="text" class="input w50" value="" name="defvalue" id="defvalue" data-validate="required:请输入数据默认值" />
+          <div class="tips"></div>
+        </div>
+      </div> 
+      <div class="form-group">
+        <div class="label">
+          <label>补位规则说明：</label>
+        </div>
+        <div class="field">
+          <input type="text" class="input w50" value="" name="cover" id="cover" />
+          <div class="tips"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="label">
+          <label>备注：</label>
+        </div>
+        <div class="field">
+          <input type="text" class="input w50" value="" name="remark" id="remark" />
+          <div class="tips"></div>
+        </div>
+      </div>   
+      <div class="form-group">
+          <div class="label">
+            <label>是否需要面签录入：</label>
+          </div>
+          <div class="field">
+            <select name="isget" id="isget" class="input w50">
+              <option value="1" selected="selected">是</option>
+              <option value="0">否</option>
+            </select>
+            <div class="tips"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="label">
+          <label></label>
+        </div>
+        <div class="field">
+          <button class="button bg-main icon-check-square-o" type="button" id="submit"> 提交</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+<script type="text/javascript">
+$(document).ready(function(){
+	var attnamejson=BASE64.decoder(getParam("attname"));
+	var attname=JSON.parse(eval(attnamejson));
+	$("#name").val(attname.name);
+	$("#depict").val(attname.depict);
+	$("#length").val(attname.length);
+	$("#isrequired").val(attname.isrequired);
+	$("#isoption").val(attname.isoption);
+	$("#defvalue").val(attname.defvalue);
+	$("#cover").val(attname.cover);
+	$("#remark").val(attname.remark);
+	$("#isget").val(attname.isget);
+	$("#submit").click(function(){
+		var form=new FormData($("#form")[0]);
+		form.append("namid",attname.namid);
+		$.ajax({
+			url:hostname+"/bank/bank/business/datum/attname/upd?token="+$.cookie("token"),
+			type:"post",
+			data:form,
+			async:false,
+			contentType:false,
+			processData:false,
+			success:function(result){
+				var data=eval(result);
+				switch(data.code){
+				case 200:
+					alert("操作成功");
+					window.location.href="list_menid.html?menid="+getParam("menid");
+					break;
+				}
+			}
+		});
+	});
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="renderer" content="webkit">
+<title></title>
+<link rel="stylesheet" href="../../css/pintuer.css">
+<link rel="stylesheet" href="../../css/admin.css">
+<script src="../../js/jquery.js"></script>
+<script src="../../js/pintuer.js"></script>
+<script src="../../js/constant.js"></script>  
+<script src="../../js/jquery.cookie.js"></script>
+<script src="../../js/layer/layer.js"></script>
+</head>
+<body>
+<div class="panel admin-panel">
+  <div class="panel-head" id="add"><strong><span class="icon-pencil-square-o"></span>添加合作商</strong></div>
+  <div class="body-content">
+    <form method="post" class="form-x" action="">  
+      <div class="form-group">
+          <div class="label">
+            <label>银行：</label>
+          </div>
+          <div class="field">
+            <select name="banid" id="banid" class="input w50">
+              
+            </select>
+            <div class="tips"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="label">
+          <label>用户名：</label>
+        </div>
+        <div class="field">
+          <input type="text" class="input w50" value="" name="username" id="username" data-validate="required:请输入用户名" />
+          <div class="tips"></div>
+        </div>
+      </div>  
+      <div class="form-group">
+        <div class="label">
+          <label>姓名：</label>
+        </div>
+        <div class="field">
+          <input type="text" class="input w50" value="" name="surname" id="surname" data-validate="required:请输入姓名" />
+          <div class="tips"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="label">
+          <label>合作商服务器IP或域名：(请务必正确，例：http://icbc.com:80)</label>
+        </div>
+        <div class="field">
+          <input type="text" class="input w50" value="" name="hostname" id="hostname" data-validate="required:请输入合作商服务器IP" />
+          <div class="tips"></div>
+        </div>
+      </div>  
+      <div class="form-group">
+          <div class="label">
+            <label>合作商类型：</label>
+          </div>
+          <div class="field">
+            <select name="isproxy" id="isproxy" class="input w50">
+              <option value="1">合作商代理</option>
+              <option value="0" selected="selected">普通合作商</option>
+            </select>
+            <div class="tips"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="label">
+          <label></label>
+        </div>
+        <div class="field">
+          <button class="button bg-main icon-check-square-o" type="button" id="submit"> 提交</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+<script type="text/javascript">
+//分页
+function pager(page,size){
+	var form=new FormData();
+	form.append("page",page);
+	form.append("size",size);
+	$.ajax({
+		url:hostname+"/bank/bank/bank/list?token="+$.cookie("token"),
+		type:"post",
+		data:form,
+		async:false,
+		contentType:false,
+		processData:false,
+		success:function(result){
+			var data=eval(result);
+			switch(data.code){
+			case 200:
+				$("#banid").empty();
+				$("#banid").append("<option selected>请选择银行</option>");
+				$(data.data).each(function(index,obj){
+					$("#banid").append("<option value="+obj.banid+">"+obj.name+"</option");
+				});
+				break;
+			}
+		}
+	});
+}
+pager(0,999);
+$(document).ready(function(){
+	//添加user
+	$("#submit").click(function(){
+		layer.confirm('确定这次操作？', {
+			btn: ['确定','取消']
+			}, function(){
+				var form=new FormData();
+				form.append("banid",$("#banid").val());
+				form.append("username",$("#username").val());
+				form.append("surname",$("#surname").val());
+				form.append("hostname",$("#hostname").val());
+				form.append("isproxy",$("#isproxy").val());
+				$.ajax({
+					url:hostname+"/bank/bank/bank/partner/add?token="+$.cookie("token"),
+					type:"post",
+					data:form,
+					async:false,
+					contentType:false,
+					processData:false,
+					success:function(result){
+						var data=eval(result);
+						switch(data.code){
+						case 200:
+							alert("操作成功");
+							window.location.href="list.html";
+							break;
+						case 500:
+							alert("unknow partner hostname");
+							break;
+						}
+					}
+				});
+			}, function(){
+
+			}
+		);
+	});
+});
+</script>
+</body>
+</html>

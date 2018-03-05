@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="renderer" content="webkit">
+    <link rel="stylesheet" href="../../../../css/pintuer.css">
+    <link rel="stylesheet" href="../../../../css/admin.css">
+    <script src="../../../../js/jquery.js"></script>
+    <script src="../../../../js/pintuer.js"></script>  
+    <script src="../../../../js/constant.js"></script>  
+    <script src="../../../../js/jquery.cookie.js"></script>
+    <script src="../../../../js/util.js"></script>
+    <script src="../../../../js/layer/layer.js"></script>
+    <script src="../../../../js/base64.js"></script>
+</head>
+<body>
+<div class="panel admin-panel">
+	<div class="panel-head"><strong class="icon-reorder">内容列表</strong></div>
+  <div class="padding border-bottom">  
+  <a class="button border-yellow" href="javascript:void(0);" onclick="add();"><span class="icon-plus-square-o"></span> 添加选项</a>
+  </div> 
+  <table class="table table-hover text-center">
+    
+  </table>
+</div>
+<div class="M-box"></div>
+<script type="text/javascript">
+function list_namid(){
+	var form=new FormData();
+	form.append("namid",getParam("namid"));
+	$.ajax({
+		url:hostname+"/bank/bank/business/datum/attvalue/list_namid?token="+$.cookie("token"),
+		type:"post",
+		data:form,
+		async:false,
+		contentType:false,
+		processData:false,
+		success:function(result){
+			var data=eval(result);
+			switch(data.code){
+			case 200:
+				$(".table").empty();
+				$(".table").append("<tr>"+
+					      "<th>选项编号</th>"+   
+					      "<th>选项名称</th>"+
+					      "<th>选项实际值</th>"+
+					      "<th>时间</th>"+
+					      "<th>操作</th>"+
+					    "</tr>");
+				$(data.data).each(function(index,obj){
+					$(".table").append("<tr>"+
+						      "<td>"+obj.valid+"</td>"+      
+						      "<td>"+obj.depict+"</td>"+
+						      "<td>"+obj.value+"</td>"+
+						      "<td id='time_"+obj.valid+"'></td>"+ 
+						      "<td><div class='button-group'><a onclick='del_valid("+obj.valid+");' type='button' class='button border-main' href='javascript:void(0);'><span class='icon-edit'></span>删除</a></div></td>"+ 
+						    "</tr> ");
+					$("#time_"+obj.valid).val(format(obj.time));
+				});
+				break;
+			}
+		}
+	});
+}
+list_namid();
+/**
+ * 添加属性
+ */
+function add(){
+	window.location.href="add.html?namid="+getParam("namid");
+}
+/**
+ * 删除
+ */
+function del_valid(valid){
+	var form=new FormData();
+	 form.append("valid",valid);
+	 $.ajax({
+			url:hostname+"/bank/bank/business/datum/attvalue/del_valid?token="+$.cookie("token"),
+			type:"post",
+			data:form,
+			async:false,
+			contentType:false,
+			processData:false,
+			success:function(result){
+				var data=eval(result);
+				switch(data.code){
+				case 200:
+					alert("操作成功");
+					window.location.href="list_namid.html?namid="+getParam("namid");
+					break;
+				}
+			}
+		});	
+}
+	 
+
+</script>
+</body>
+</html>

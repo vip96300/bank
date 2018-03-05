@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="renderer" content="webkit">
+    <link rel="stylesheet" href="../../../../css/pintuer.css">
+    <link rel="stylesheet" href="../../../../css/admin.css">
+    <script src="../../../../js/jquery.js"></script>
+    <script src="../../../../js/pintuer.js"></script>  
+    <script src="../../../../js/constant.js"></script>  
+    <script src="../../../../js/jquery.cookie.js"></script>
+    <script src="../../../../js/util.js"></script>
+    <script src="../../../../js/layer/layer.js"></script>
+    <script src="../../../../js/base64.js"></script>
+</head>
+<body>
+<div class="panel admin-panel">
+	<div class="panel-head"><strong class="icon-reorder">内容列表</strong></div>
+  <div class="padding border-bottom">  
+  <a class="button border-yellow" href="javascript:void(0);" onclick="add();"><span class="icon-plus-square-o"></span> 添加菜单</a>
+  </div> 
+  <table class="table table-hover text-center">
+    
+  </table>
+</div>
+<div class="M-box"></div>
+<script type="text/javascript">
+function list_pid(){
+	var form=new FormData();
+	form.append("pid",getParam("pid"));
+	$.ajax({
+		url:hostname+"/bank/bank/business/datum/menu/list_pid?token="+$.cookie("token"),
+		type:"post",
+		data:form,
+		async:false,
+		contentType:false,
+		processData:false,
+		success:function(result){
+			var data=eval(result);
+			switch(data.code){
+			case 200:
+				$(".table").empty();
+				$(".table").append("<tr>"+
+					      "<th>菜单名称</th>"+   
+					      "<th>是否最小化单元</th>"+  
+					      "<th>添加时间</th>"+
+					      "<th>操作</th>"+
+					      "<th></th>"+
+					      "<th></th>"+
+					    "</tr>");
+				$(data.data).each(function(index,obj){
+					$(".table").append("<tr>"+
+						      "<td>"+obj.name+"</td>"+      
+						      "<td>"+obj.issku+"</td>"+ 
+						      "<td id='time_"+obj.menid+"'></td>"+ 
+						      "<td id='issku_"+obj.menid+"'><div class='button-group'><a type='button' class='button border-main' href='list_pid.html?pid="+obj.menid+"'><span class='icon-edit'></span>查看子菜单</a></div></td>"+ 
+						      "<td><div class='button-group'><a type='button' class='button border-main' href='../attname/list_menid.html?menid="+obj.menid+"'><span class='icon-edit'></span>查看属性列表</a></div></td>"+
+						      "<td><div class='button-group'><a type='button' class='button border-main' href='javascript:void(0);' onclick=upd("+obj.menid+",'"+obj.name+"');><span class='icon-edit'></span>修改</a></div></td>"+ 
+						      "<td><div class='button-group'><a type='button' class='button border-main' href='javascript:void(0);' onclick=del_menid("+obj.menid+");><span class='icon-edit'></span>删除</a></div></td>"+ 
+						    "</tr> ");
+					$("#time_"+obj.menid).text(format(obj.time));
+					if(obj.issku==1){
+						$("#issku_"+obj.menid).empty();
+					}
+				});
+				break;
+			}
+		}
+	});
+}
+list_pid();
+/**
+ * 添加菜单
+ */
+function add(){
+	layer.open({
+		type: 2,
+		title: '添加菜单',
+		shadeClose: true,
+		shade: 0.5,
+		area: ['700px', '400px'],
+		content:['add.html?pid='+getParam("pid"), 'no']
+	}); 
+}
+/**
+ * 修改菜单
+ */
+function upd(menid,name){
+	 layer.open({
+			type: 2,
+			title: '修改菜单',
+			shadeClose: true,
+			shade: 0.5,
+			area: ['700px', '400px'],
+			content:['upd.html?menid='+menid+"&name="+BASE64.encoder(name)+"&pid="+getParam("pid"), 'no']
+		}); 
+}
+/**
+ * 删除菜单
+ */
+function del_menid(menid){
+	var form=new FormData();
+	form.append("menid",menid);
+	$.ajax({
+		url:hostname+"/bank/bank/business/datum/menu/del_menid?token="+$.cookie("token"),
+		type:"post",
+		data:form,
+		async:false,
+		contentType:false,
+		processData:false,
+		success:function(result){
+			alert("操作成功");
+			window.location.href="list_pid.html?pid="+getParam("pid");
+		}
+	});
+}
+</script>
+</body>
+</html>
